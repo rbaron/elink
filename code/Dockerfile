@@ -1,0 +1,19 @@
+FROM alpine:latest
+
+RUN apk add --no-cache gcompat make python3 git bash
+
+# Download the tc32 toolchain.
+RUN cd /opt && \
+	wget http://shyboy.oss-cn-shenzhen.aliyuncs.com/readonly/tc32_gcc_v2.0.tar.bz2 && \
+	tar jxvf tc32_gcc_v2.0.tar.bz2
+
+# Clone the Telink_825X_SDK.
+RUN cd /opt && \
+	git clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK.git
+
+WORKDIR /app
+
+ENV TC32_HOME="/opt/tc32" \
+	PATH="/opt/tc32/bin:${PATH}"
+
+ENTRYPOINT ["/bin/sh"]
