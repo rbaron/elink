@@ -9,7 +9,8 @@ RUN cd /opt && \
 
 # Clone the Telink_825X_SDK.
 RUN cd /opt && \
-	git clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK.git
+	git clone https://github.com/Ai-Thinker-Open/Telink_825X_SDK.git && \
+	git clone https://github.com/atc1441/ATC_TLSR_Paper.git
 
 WORKDIR /app
 

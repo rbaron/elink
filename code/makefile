@@ -1,26 +1,15 @@
 TEL_CHIP := -DCHIP_TYPE=CHIP_TYPE_8258
 
-# ifeq ($(OS), Windows_NT)
-# 	TC32_COMPILER_PATH := "tc32_windows\\bin\\"
-# 	WINDOWS_PREFIX :=$(TC32_COMPILER_PATH)
-# 	LINUX_CHMOD :=
-# else
-# 	TC32_COMPILER_PATH := ./tc32_linux/bin/
-# 	WINDOWS_PREFIX :=
-# 	LINUX_CHMOD := chmod 777 -R ./tc32_linux/
-# endif
-
 TC32_COMPILER_PATH := /opt/tc32/bin/
 
 LIBS :=  -llt_8258
 
-# TEL_PATH := ./
 TEL_PATH := /opt/Telink_825X_SDK/
 
 PROJECT_NAME := elink
 
 PROJECT_PATH := ./src
-PROJECT_PATH_STATIC := ./static_src
+PROJECT_PATH_STATIC := /opt/ATC_TLSR_Paper/Firmware/static_src/
 OUT_PATH :=./build
 
 ifneq ($(TEL_PATH)/make/makefile, $(wildcard $(TEL_PATH)/make/makefile))
@@ -60,9 +49,8 @@ INCLUDE_PATHS := -I$(TEL_PATH)/components -I$(PROJECT_PATH)
 
 GCC_FLAGS += $(TEL_CHIP)
 
-# LS_FLAGS := $(PROJECT_PATH_STATIC)/boot.link
-LS_FLAGS := /opt/Telink_825X_SDK/components/boot/boot_32k_retn_8253_8258.link
-LS_FLAGS := $(TEL_PATH)/components/boot/boot_32k_retn_8253_8258.link
+LS_FLAGS := $(PROJECT_PATH_STATIC)/boot.link
+# LS_FLAGS := /opt/Telink_825X_SDK/components/boot/boot_32k_retn_8253_8258.link
 
 #include SDK makefile
 -include $(TEL_PATH)/make/application.mk
@@ -70,7 +58,7 @@ LS_FLAGS := $(TEL_PATH)/components/boot/boot_32k_retn_8253_8258.link
 -include $(TEL_PATH)/make/vendor_common.mk
 -include $(TEL_PATH)/make/tinyFlash.mk
 -include $(TEL_PATH)/make/drivers_8258.mk
-# -include $(PROJECT_PATH_STATIC)/div_mod.mk
+-include $(PROJECT_PATH_STATIC)/div_mod.mk
 
 ifeq ($(USE_FREE_RTOS), 1)
 -include $(TEL_PATH)/make/freertos.mk
@@ -79,8 +67,8 @@ endif
 
 #include Project makefile
 -include $(PROJECT_PATH)/project.mk
-# -include $(PROJECT_PATH_STATIC)/boot.mk
--include $(TEL_PATH)/make/boot.mk
+-include $(PROJECT_PATH_STATIC)/boot.mk
+# -include $(TEL_PATH)/make/boot.mk
 
 # Add inputs and outputs from these tool invocations to the build variables
 LST_FILE := $(OUT_PATH)/$(PROJECT_NAME).lst
