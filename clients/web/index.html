@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>elink web client</title>
+    <style>
+      section {
+        margin: 0 auto;
+        max-width: 800px;
+      }
+      input.screen-input {
+        padding: 10px;
+        margin: 10px;
+        border-radius: 8px;
+        font-size: 30px;
+        width: 24px;
+        height: 48px;
+        text-align: center;
+      }
+      div#grid-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      div#screen-inputs-container {
+        display: grid;
+        /* 10 inputs per row */
+        grid-template-columns: auto auto auto auto auto auto auto auto auto auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <section>
+      <h1>elink</h1>
+    </section>
+    <section>
+      <fieldset>
+        <legend>Draw Text</legend>
+        <div id="grid-container">
+          <div id="screen-inputs-container"></div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-evenly;
+              align-items: center;
+            "
+          >
+            <fieldset style="flex: 1">
+              <legend>Options</legend>
+              <div>
+                <input
+                  type="checkbox"
+                  id="text-wakeup"
+                  name="text-wakeup"
+                  checked
+                />
+                <label for="text-wakeup">Wake up</label>
+              </div>
+              <div>
+                <input
+                  type="checkbox"
+                  id="text-disconnect"
+                  name="text-disconnect"
+                  checked
+                />
+                <label for="text-disconnect">Disconnect</label>
+              </div>
+              <div>
+                <input
+                  type="checkbox"
+                  id="text-sleep"
+                  name="text-sleep"
+                  checked
+                />
+                <label for="text-sleep">Sleep</label>
+              </div>
+              <div>
+                <input type="checkbox" id="text-invert" name="text-invert" />
+                <label for="text-invert">Invert</label>
+              </div>
+            </fieldset>
+            <button onclick="onSendTextClick()">Send text</button>
+          </div>
+        </div>
+      </fieldset>
+    </section>
+    <section>
+      <fieldset>
+        <legend>Advanced</legend>
+        <div>
+          <label for="delay-between-messages">Delay between messages (ms)</label
+          ><br />
+          <input
+            type="number"
+            id="delay-between-messages"
+            name="delay-between-messages"
+            value="150"
+          />
+        </div>
+        <div>
+          <label for="delay-between-chars">Delay between chars (ms)</label
+          ><br />
+          <input
+            type="number"
+            id="delay-between-chars"
+            name="delay-between-chars"
+            value="200"
+          />
+        </div>
+      </fieldset>
+    </section>
+    <section>
+      <fieldset>
+        <legend>Actions</legend>
+        <div style="display: flex; justify-content: space-around">
+          <button onclick="onDisconnectClick()">Disconnect</button>
+          <button onclick="onSendPingClick()">Ping</button>
+        </div>
+      </fieldset>
+    </section>
+    <script>
+      function createScreenInputs(parentNode, nScreens) {
+        for (let i = 0; i < nScreens; i++) {
+          let input = document.createElement("input");
+          input.setAttribute("id", `screen-input-${i}`);
+          input.setAttribute("type", "text");
+          input.setAttribute("class", "screen-input");
+          input.setAttribute("value", "");
+          input.setAttribute("maxlength", "1");
+          input.addEventListener("keydown", function (evt) {
+            // Backspace.
+            if (evt.keyCode === 8) {
+              evt.preventDefault();
+              nextNode = document.getElementById(
+                `screen-input-${Math.max(i - 1, 0)}`
+              );
+              if (i === nScreens - 1 && input.value !== "") {
+                input.value = "";
+              } else {
+                nextNode.value = "";
+                nextNode.focus();
+              }
+            }
+          });
+          input.addEventListener("input", function (evt) {
+            nextNode = document.getElementById(
+              `screen-input-${Math.min(i + 1, nScreens - 1)}`
+            );
+            nextNode.focus();
+          });
+          parentNode.appendChild(input);
+        }
+      }
+
+      function sendCharsBLE() {}
+
+      const kESLBLEService = "13187b10-eba9-a3ba-044e-83d3217d9a38";
+      const kESLBLECharacteristic = "4b646063-6264-f3a7-8941-e65356ea82fe";
+      const kESLBLEMagicByte = 0x42;
+
+      const CMDs = {
+        sleep: function (wait_ms) {
+          return new Uint8Array([
+            kESLBLEMagicByte,
+            0x14,
+            0x08,
+            0x00,
+            0x02,
+            (wait_ms >> 8) & 0xff,
+            wait_ms & 0xff,
+          ]);
+        },
+        ping: function (to) {
+          // yield bytes([to]) + b'\x03\x00\x00'
+          return new Uint8Array([kESLBLEMagicByte, 0x03, 0x00, 0x00]);
+        },
+        char: function (to, char, invert) {
+          return new Uint8Array([
+            kESLBLEMagicByte,
+            to,
+            0x04,
+            0x00,
+            0x03,
+            // Font byte.
+            0x09,
+            char,
+            // Invert.
+            invert ? 0x01 : 0x00,
+          ]);
+        },
+      };
+
+      function onConnectedBLE() {}
+
+      function onDisconnectBLE() {
+        bleDevice = null;
+        bleCharacteristic = null;
+      }
+
+      function connectBLE() {
+        if (bleCharacteristic) return Promise.resolve(bleCharacteristic);
+
+        return navigator.bluetooth
+          .requestDevice({
+            filters: [{ name: "ESL" }],
+            optionalServices: [kESLBLEService],
+          })
+          .then((device) => {
+            device.addEventListener("gattserverdisconnected", onDisconnectBLE);
+            bleDevice = device;
+            return device.gatt.connect();
+          })
+          .then((server) => server.getPrimaryService(kESLBLEService))
+          .then((service) => service.getCharacteristic(kESLBLECharacteristic))
+          .then(async (characteristic) => {
+            bleCharacteristic = characteristic;
+            onConnectedBLE();
+            return characteristic;
+          });
+      }
+
+      function onDisconnectClick() {
+        if (!bleDevice) {
+          console.error("Unable to disconnect - not connected");
+          return;
+        }
+        bleDevice.gatt.disconnect();
+      }
+
+      function onSendPingClick() {
+        if (!bleCharacteristic) {
+          console.error("Unable to send ping - not connected");
+          return;
+        }
+        return bleCharacteristic.writeValue(CMDs.ping(0xff));
+      }
+
+      async function delay(ms) {
+        return await new Promise((r) => setTimeout(r, ms));
+      }
+
+      function onSendTextClick() {
+        function isChecked(setting) {
+          return document.getElementById(`text-${setting}`).checked;
+        }
+
+        const delayBetweenMsgs = parseInt(
+          document.getElementById("delay-between-messages").value
+        );
+        const delayBetweenChars = parseInt(
+          document.getElementById("delay-between-chars").value
+        );
+        return connectBLE().then(async (characteristic) => {
+          if (isChecked("wakeup")) {
+            await characteristic.writeValue(CMDs.sleep(200));
+            await delay(delayBetweenMsgs);
+          }
+
+          // From last to first.
+          for (const [to, char] of reorderCharsInZigZagPattern(
+            getCharsFromScreenInputs(kNScreens)
+          )
+            .reverse()
+            .entries()) {
+            // console.log(
+            //   "sending",
+            //   CMDs.char(kNScreens - 1 - to, char, isChecked("invert"))
+            // );
+            await characteristic.writeValue(
+              CMDs.char(kNScreens - 1 - to, char, isChecked("invert"))
+            );
+            await delay(delayBetweenChars);
+          }
+          if (isChecked("sleep")) {
+            await characteristic.writeValue(CMDs.sleep(3000));
+            await delay(delayBetweenMsgs);
+          }
+
+          if (isChecked("disconnect")) {
+            await bleDevice.gatt.disconnect();
+          }
+        });
+      }
+
+      function getCharsFromScreenInputs(nScreens) {
+        let chars = [];
+        for (let i = 0; i < nScreens; i++) {
+          const charCode = (
+            document.getElementById(`screen-input-${i}`).value || " "
+          ).charCodeAt(0);
+          chars.push(charCode);
+        }
+        return chars;
+      }
+
+      // TODO: make this more generic for nScreens.
+      function reorderCharsInZigZagPattern(chars) {
+        return chars.slice(0, 10).concat(chars.slice(10, 20).reverse());
+      }
+
+      function init(nScreens) {
+        createScreenInputs(
+          document.getElementById("screen-inputs-container"),
+          nScreens
+        );
+      }
+
+      let bleDevice = null;
+      let bleCharacteristic = null;
+      const kNScreens = 20;
+
+      init(kNScreens);
+    </script>
+  </body>
+</html>
