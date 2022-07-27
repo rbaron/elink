@@ -27,6 +27,3 @@ $(OUT_PATH)/main.o
 $(OUT_PATH)/%.o: ./src/%.c
 	@echo 'Building file: $<'
 	@$(TC32_COMPILER_PATH)tc32-elf-gcc $(GCC_FLAGS) $(INCLUDE_PATHS) -c -o"$@" "$<"
-
-# -include $(SRC:%.c=%.d)
-# -include $(OUT_PATH)/*.d
