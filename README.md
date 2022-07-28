@@ -37,3 +37,11 @@ The [Dockerfile.devcontainer](code/.devcontainer/Dockerfile.devcontainer) define
 ## License
 
 The code is released under the MIT license, and fabrication files (STL, SVGs) under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/).
+
+## Demo
+
+Here's drawing "Hello, world" over BLE with the [web client](https://rbaron.github.io/elink):
+
+https://user-images.githubusercontent.com/1573409/181444598-2fc59157-b527-484d-a00a-630492e747f3.mp4
+
+
