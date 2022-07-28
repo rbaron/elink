@@ -1,4 +1,0 @@
-bleak==0.14.3
-numpy==1.22.4
-opencv-contrib-python==4.6.0.66
-pyserial==3.5
