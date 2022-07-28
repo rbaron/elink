@@ -120,7 +120,7 @@ def make_transport(args, logger):
         return send_serial
     elif args.transport == 'ble':
         async def f(msgs):
-            device = await scan("ESL", logger, timeout=30)
+            device = await scan("elink", logger, timeout=30)
             return await send_ble(device, msgs, logger)
         return f
         # print(device)

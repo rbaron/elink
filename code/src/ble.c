@@ -36,8 +36,7 @@ RAM my_fifo_t blt_txfifo = {
 	blt_txfifo_b,
 };
 
-// RAM uint8_t ble_name[] = {11, 0x09, 'E', 'S', 'L', '_', '0', '0', '0', '0', '0', '0'};
-RAM uint8_t ble_name[] = {4, 0x09, 'E', 'S', 'L'};
+RAM uint8_t ble_name[] = {6, 0x09, 'e', 'l', 'i', 'n', 'k'};
 
 RAM uint8_t advertising_data[] = {
 	/*Description*/ 16, 0x16, 0x1a, 0x18,

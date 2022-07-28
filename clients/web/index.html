@@ -99,7 +99,7 @@
             type="number"
             id="delay-between-messages"
             name="delay-between-messages"
-            value="150"
+            value="200"
           />
         </div>
         <div>
@@ -207,7 +207,7 @@
 
         return navigator.bluetooth
           .requestDevice({
-            filters: [{ name: "ESL" }],
+            filters: [{ name: "elink" }],
             optionalServices: [kESLBLEService],
           })
           .then((device) => {
@@ -277,7 +277,7 @@
             await delay(delayBetweenChars);
           }
           if (isChecked("sleep")) {
-            await characteristic.writeValue(CMDs.sleep(3000));
+            await characteristic.writeValue(CMDs.sleep(5000));
             await delay(delayBetweenMsgs);
           }
 
