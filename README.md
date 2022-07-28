@@ -1,5 +1,7 @@
 # elink
 
+![elink](media/elink.jpeg)
+
 ## Repository organization
 
 | Directory                                    | Description                                                                                              |
