@@ -112,6 +112,20 @@
             value="200"
           />
         </div>
+        <div>
+          <input type="checkbox" id="filter-service" name="filter-service" />
+          <label for="filter-service">Filter on BLE Service</label>
+        </div>
+        <div>
+          <label for="filter-name">Filter on BLE name (empty disables)</label
+          ><br />
+          <input
+            type="text"
+            id="filter-name"
+            name="filter-name"
+            value="elink, ESL"
+          />
+        </div>
       </fieldset>
     </section>
     <section>
@@ -202,13 +216,38 @@
         bleCharacteristic = null;
       }
 
+      function makeBLEFilters() {
+        let filters = [];
+        if (document.getElementById("filter-service").checked) {
+          filters.push({
+            services: [kESLBLEService],
+          });
+        }
+        const name = document.getElementById("filter-name").value;
+        if (name) {
+          name.split(",").forEach((n) =>
+            filters.push({
+              namePrefix: n.trim(),
+            })
+          );
+        }
+        if (filters.length === 0) {
+          for (let i = 0x27; i <= 0x73; i++) {
+            filters.push({
+              namePrefix: String.fromCharCode(i),
+            });
+          }
+        }
+        return filters;
+      }
+
       function connectBLE() {
         if (bleCharacteristic) return Promise.resolve(bleCharacteristic);
 
         return navigator.bluetooth
           .requestDevice({
-            filters: [{ name: "elink" }],
             optionalServices: [kESLBLEService],
+            filters: makeBLEFilters(),
           })
           .then((device) => {
             device.addEventListener("gattserverdisconnected", onDisconnectBLE);
